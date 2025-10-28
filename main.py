@@ -5,7 +5,7 @@ import webbrowser
 import traceback
 from datetime import datetime
 
-#pip install pyttsx3 traceback datetime speechrecognition webbrowser
+#pip install pyttsx3 speechrecognition
 
 # Make a speak function
 def speak(text):
