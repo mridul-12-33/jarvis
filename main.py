@@ -2,24 +2,17 @@ import speech_recognition as sr
 import pyttsx3
 import time
 import webbrowser
-import traceback
 from datetime import datetime
 
-#pip install pyttsx3 speechrecognition
+# Initialize speech engine once
+engine = pyttsx3.init()
 
-# Make a speak function
 def speak(text):
-    engine = pyttsx3.init()
     engine.say(text)
     engine.runAndWait()
-    engine.stop()
-    time.sleep(0.5)
-
 
 def processcommand(command):
     command = command.lower().strip()
-
-    # play in youtube
     if command.startswith("play "):
         query = command.replace("play", "").strip()
         if query:
@@ -28,7 +21,6 @@ def processcommand(command):
         else:
             speak("Please tell me what to play.")
 
-    # search in google
     elif command.startswith("search "):
         query = command.replace("search", "").strip()
         if query:
@@ -37,37 +29,32 @@ def processcommand(command):
         else:
             speak("Please tell me what to search for.")
 
-    #Open YouTube
     elif "youtube" in command:
         speak("Opening YouTube")
         webbrowser.open("https://www.youtube.com")
 
-    #Open Google
     elif "google" in command:
         speak("Opening Google")
         webbrowser.open("https://www.google.com")
-    #Open facebook
+
     elif "facebook" in command:
-        speak("Opening facebook")
+        speak("Opening Facebook")
         webbrowser.open("https://www.facebook.com")
-    #Open instagram
+
     elif "instagram" in command:
-        speak("Opening instagram")
+        speak("Opening Instagram")
         webbrowser.open("https://www.instagram.com")
-    #Open linkedin
+
     elif "linkedin" in command:
-        speak("Opening linkedin")
+        speak("Opening LinkedIn")
         webbrowser.open("https://www.linkedin.com")
 
-    # Time
     elif "time" in command:
         speak(f"The time is {datetime.now().strftime('%H:%M')}")
 
-    # ai search
     else:
-        speak(f"Searching Web for {command}")
+        speak(f"Searching the web for {command}")
         webbrowser.open(f"https://www.google.com/search?q={command.replace(' ', '+')}")
-
 
 if __name__ == "__main__":
     speak("Initializing Optimus...")
@@ -82,36 +69,31 @@ if __name__ == "__main__":
                 else:
                     print("🎧 Listening for commands...")
 
-                # Listen for audio
                 audio = r.listen(source, timeout=5, phrase_time_limit=5)
 
-            # Recognize speech
-            text = r.recognize_google(audio)
-            print("Heard:", text)
+            try:
+                text = r.recognize_google(audio)
+                print("Heard:", text)
+            except sr.UnknownValueError:
+                print("Didn't catch that.")
+                continue
+            except sr.RequestError:
+                speak("Network error. Check your connection.")
+                continue
 
             if not active:
-                # Wake word detection
                 if "optimus" in text.lower():
                     speak("Yes?")
                     active = True
             else:
-                # Split multiple commands by "and", "then" or commas
-                commands = [
-                    c.strip()
-                    for c in text.lower().replace("then", ",").replace("and", ",").split(",")
-                    if c.strip()
-                ]
+                commands = [c.strip() for c in text.lower().replace("then", ",").replace("and", ",").split(",") if c.strip()]
                 for cmd in commands:
                     processcommand(cmd)
-                    time.sleep(0.3)  # small delay between commands
-                active = False  # go back to wake word
+                    time.sleep(0.3)
+                active = False
 
-        except sr.UnknownValueError:
-            print("Didn't catch that.")
         except sr.WaitTimeoutError:
-            print("Listening timed out.")
-        except sr.RequestError as e:
-            print("Network error:", e)
+            continue
         except Exception as e:
             print("Error:", e)
-            traceback.print_exc()
+            continue
